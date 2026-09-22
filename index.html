@@ -22,20 +22,15 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="abrirConfig()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
-                    <i class="fa-solid fa-gear"></i> GitHub Sync
-                </button>
+                <span class="bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> GitHub Sincronizado
+                </span>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
-        
-        <!-- Alerta de Sincronización -->
-        <div id="estadoSync" class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-center justify-between hidden">
-            <span><i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Aviso:</strong> Configurá los datos de GitHub (engranaje arriba) para guardar los cambios en la nube.</span>
-        </div>
 
         <!-- Panel de Selección de Curso y Preceptores -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -104,34 +99,6 @@
             </div>
         </div>
     </main>
-
-    <!-- Modal Configuración GitHub -->
-    <div id="modalConfig" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-base font-bold text-slate-900">Configurar Repositorio GitHub</h3>
-                <button onclick="cerrarConfig()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-semibold text-slate-600 mb-1">USUARIO</label>
-                    <input type="text" id="cfgUser" placeholder="ej: damiansn" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-600 mb-1">REPOSITORIO</label>
-                    <input type="text" id="cfgRepo" placeholder="ej: grilla-horarios" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-                </div>
-                <div>
-                    <label class="block font-semibold text-slate-600 mb-1">GITHUB TOKEN (PAT)</label>
-                    <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxx" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-                </div>
-            </div>
-            <div class="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
-                <button onclick="cerrarConfig()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-xs font-medium">Cancelar</button>
-                <button onclick="guardarConfig()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium">Guardar</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal para Agregar / Editar Módulo -->
     <div id="modalClase" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
@@ -248,10 +215,11 @@
         let clases = [];
         let fileSha = null;
 
-        let gitConfig = {
-            user: "damiansn",          
-            repo: "grilla-horarios",               
-            token: "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"   // Tu token con acceso exclusivo a este repo
+        // Configuración fija de GitHub inyectada directamente
+        const gitConfig = {
+            user: "damiansn",
+            repo: "grilla-horarios",
+            token: "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"
         };
 
         function cambiarAnio() {
@@ -292,21 +260,9 @@
         }
 
         async function cargarDatosRemotos() {
-            if (!gitConfig.user || !gitConfig.repo) {
-                document.getElementById('estadoSync').classList.remove('hidden');
-                clases = [
-                    { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab de Programación / Informática", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" },
-                    { id: 2, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G1", aula: "Lab de Electrónica", materia: "AEA", docente: "PROV. ARMANI DAMIAN" },
-                    { id: 3, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G2", aula: "Lab de Programación / Informática", materia: "MPE", docente: "PROV. FILISTEO MARCELO" }
-                ];
-                renderizarGrilla();
-                return;
-            }
-
             try {
                 const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
-                const headers = {};
-                if (gitConfig.token) headers['Authorization'] = `token ${gitConfig.token}`;
+                const headers = { 'Authorization': `token ${gitConfig.token}` };
 
                 const res = await fetch(url, { headers });
                 if (res.ok) {
@@ -324,26 +280,26 @@
                             }
                         }
                     }
-                    document.getElementById('estadoSync').classList.add('hidden');
+                } else {
+                    console.warn("No se encontró horarios.json en GitHub o falló la autenticación. Se usarán datos por defecto.");
+                    clases = [
+                        { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab de Programación / Informática", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" }
+                    ];
                 }
             } catch (err) {
-                console.error("Error al cargar:", err);
+                console.error("Error al conectar con GitHub:", err);
             }
             actualizarInfoCurso();
         }
 
         async function guardarDatosRemotos() {
-            if (!gitConfig.user || !gitConfig.repo || !gitConfig.token) {
-                return;
-            }
-
             try {
                 const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
                 const payload = { clases: clases, cursos: estructuraCursos };
                 const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
                 
                 const body = {
-                    message: "Actualización de horarios y preceptores",
+                    message: "Actualización automática de horarios y preceptores",
                     content: contentEncoded,
                     branch: "main"
                 };
@@ -361,9 +317,11 @@
                 if (res.ok) {
                     const data = await res.json();
                     fileSha = data.content.sha;
+                } else {
+                    console.error("Error al guardar en GitHub. Respuesta:", await res.text());
                 }
             } catch (err) {
-                console.error("Error al guardar en GitHub:", err);
+                console.error("Excepción al intentar guardar en GitHub:", err);
             }
         }
 
@@ -446,25 +404,6 @@
                 tr.innerHTML = html;
                 tbody.appendChild(tr);
             });
-        }
-
-        function abrirConfig() {
-            document.getElementById('cfgUser').value = gitConfig.user;
-            document.getElementById('cfgRepo').value = gitConfig.repo;
-            document.getElementById('cfgToken').value = gitConfig.token;
-            document.getElementById('modalConfig').classList.remove('hidden');
-            document.getElementById('modalConfig').classList.add('flex');
-        }
-        function cerrarConfig() { document.getElementById('modalConfig').classList.remove('flex'); document.getElementById('modalConfig').classList.add('hidden'); }
-        function guardarConfig() {
-            gitConfig.user = document.getElementById('cfgUser').value.trim();
-            gitConfig.repo = document.getElementById('cfgRepo').value.trim();
-            gitConfig.token = document.getElementById('cfgToken').value.trim();
-            localStorage.setItem('gh_user', gitConfig.user);
-            localStorage.setItem('gh_repo', gitConfig.repo);
-            localStorage.setItem('gh_token', gitConfig.token);
-            cerrarConfig();
-            cargarDatosRemotos();
         }
 
         function abrirModalCelda(dia, moduloId) {

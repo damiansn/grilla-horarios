@@ -155,8 +155,23 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-1">AULA / LAB</label>
-                        <input type="text" id="modalAula" placeholder="Ej: Lab 4 / Aula 13" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                        <label class="block font-semibold text-slate-600 mb-1">AULA / ESPACIO</label>
+                        <select id="modalAula" class="w-full border border-slate-300 rounded-lg p-2 outline-none font-medium text-slate-700">
+                            <option value="">Aula Común / Teórica</option>
+                            <optgroup label="Laboratorios y Talleres">
+                                <option value="Lab de Electrónica">Lab de Electrónica</option>
+                                <option value="Lab de Programación / Informática">Lab de Programación / Informática</option>
+                                <option value="Pañol / Taller de Electromecánica">Taller de Electromecánica</option>
+                                <option value="Taller de Ajuste">Taller de Ajuste</option>
+                                <option value="Taller de Soldadura">Taller de Soldadura</option>
+                                <option value="Taller de Electricidad">Taller de Electricidad</option>
+                                <option value="Taller de Hojalatería">Taller de Hojalatería</option>
+                            </optgroup>
+                            <optgroup label="Salones Específicos">
+                                <option value="Salón de Usos Múltiples (SUM)">Salón de Usos Múltiples (SUM)</option>
+                                <option value="Biblioteca">Biblioteca</option>
+                            </optgroup>
+                        </select>
                     </div>
                 </div>
                 <div>
@@ -194,7 +209,7 @@
             3: [
                 { id: '3A', nombre: '3° Año - Ciclo Básico (A)', preceptores: '' },
                 { id: '3B', nombre: '3° Año - Ciclo Básico (B)', preceptores: '' },
-                { id: '3C', nombre: '3° Año- Ciclo Básico (C)', preceptores: '' },
+                { id: '3C', nombre: '3° Año - Ciclo Básico (C)', preceptores: '' },
                 { id: '3D', nombre: '3° Año - Ciclo Básico (D)', preceptores: '' }
             ],
             4: [
@@ -280,9 +295,9 @@
             if (!gitConfig.user || !gitConfig.repo) {
                 document.getElementById('estadoSync').classList.remove('hidden');
                 clases = [
-                    { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab 4", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" },
-                    { id: 2, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G1", aula: "Lab 3", materia: "AEA", docente: "PROV. ARMANI DAMIAN" },
-                    { id: 3, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G2", aula: "Lab 4", materia: "MPE", docente: "PROV. FILISTEO MARCELO" }
+                    { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab de Programación / Informática", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" },
+                    { id: 2, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G1", aula: "Lab de Electrónica", materia: "AEA", docente: "PROV. ARMANI DAMIAN" },
+                    { id: 3, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G2", aula: "Lab de Programación / Informática", materia: "MPE", docente: "PROV. FILISTEO MARCELO" }
                 ];
                 renderizarGrilla();
                 return;
@@ -298,9 +313,8 @@
                     const data = await res.json();
                     fileSha = data.sha;
                     const parsed = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-                    clases = parsed.clases || parsed; // Compatible con formatos anteriores
+                    clases = parsed.clases || parsed;
                     if (parsed.cursos) {
-                        // Sincronizar estructuras de cursos guardadas (preceptores)
                         for (let a in parsed.cursos) {
                             if (estructuraCursos[a]) {
                                 parsed.cursos[a].forEach(savedDiv => {
@@ -320,7 +334,7 @@
 
         async function guardarDatosRemotos() {
             if (!gitConfig.user || !gitConfig.repo || !gitConfig.token) {
-                return; // Si no hay git configurado, trabaja local sin molestar
+                return;
             }
 
             try {
@@ -387,10 +401,8 @@
                         );
                     }
 
-                    // Ordenar si hay grupos concurrentes (G1, G2)
                     clasesFiltradas.sort((a, b) => (a.grupo || '').localeCompare(b.grupo || ''));
 
-                    // Cuadrante limpio interactivo
                     html += `<td class="p-2 border-r border-slate-200 align-top relative group min-h-[75px] cursor-pointer hover:bg-indigo-50/30 transition" onclick="abrirModalCelda('${dia}', ${mod.id})">`;
                     
                     if (clasesFiltradas.length > 0) {
@@ -414,7 +426,6 @@
                                 </div>
                             `;
                         });
-                        // Botón para agregar otro grupo concurrente (ej: agregar G2 si ya está G1)
                         html += `
                             <div class="text-center mt-1" onclick="event.stopPropagation()">
                                 <button onclick="abrirModalCelda('${dia}', ${mod.id})" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold bg-white border border-indigo-200 px-2 py-0.5 rounded-full shadow-2xs">
@@ -468,7 +479,6 @@
             const modObj = modulosHorarios.find(m => m.id === moduloId);
             document.getElementById('modalInfoUbicacion').innerText = `${divisionObj.nombre} — ${dia} (Módulo ${moduloId}: ${modObj.rango})`;
             
-            // Guardar temporalmente día y módulo en atributos del form
             document.getElementById('formClase').dataset.dia = dia;
             document.getElementById('formClase').dataset.moduloId = moduloId;
 
@@ -481,7 +491,7 @@
         function guardarClase(e) {
             e.preventDefault();
             const id = document.getElementById('claseId').value;
-            const anio = document.getElementById('selectAnio').value;
+            const anio = document.getElementById('selectAnio'].value;
             const division = document.getElementById('selectDivision').value;
             const form = document.getElementById('formClase');
 
@@ -492,7 +502,7 @@
                 dia: id ? clases.find(c => c.id === parseInt(id)).dia : form.dataset.dia,
                 moduloId: id ? clases.find(c => c.id === parseInt(id)).moduloId : parseInt(form.dataset.moduloId),
                 grupo: document.getElementById('modalGrupo').value.trim(),
-                aula: document.getElementById('modalAula').value.trim(),
+                aula: document.getElementById('modalAula').value,
                 materia: document.getElementById('modalMateria').value.trim(),
                 docente: document.getElementById('modalDocente').value.trim()
             };

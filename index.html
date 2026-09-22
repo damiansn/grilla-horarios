@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Horarios - Ciclo Lectivo</title>
+    <!-- Tailwind CSS para un diseño moderno y rápido -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-calendar-days text-3xl"></i>
+                <div>
+                    <h1 class="text-xl font-bold">Grilla de Horarios Escolares</h1>
+                    <p class="text-indigo-200 text-sm">Escuela Técnica - Doble Jornada</p>
+                </div>
+            </div>
+            <button onclick="abrirModal()" class="bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Nueva Clase / Módulo
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+        
+        <!-- Filtros y Buscador -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex flex-wrap gap-3 items-center w-full md:w-auto flex-grow">
+                <div class="w-full sm:w-48">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">FILTRAR POR DÍA</label>
+                    <select id="filtroDia" onchange="filtrarHorarios()" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Todos los días</option>
+                        <option value="Lunes">Lunes</option>
+                        <option value="Martes">Martes</option>
+                        <option value="Miércoles">Miércoles</option>
+                        <option value="Jueves">Jueves</option>
+                        <option value="Viernes">Viernes</option>
+                    </select>
+                </div>
+                <div class="w-full sm:w-48">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">CURSO</label>
+                    <select id="filtroCurso" onchange="filtrarHorarios()" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Todos los cursos</option>
+                    </select>
+                </div>
+                <div class="w-full sm:w-64 flex-grow">
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">BUSCAR (DOCENTE / MATERIA)</label>
+                    <input type="text" id="busquedaTexto" oninput="filtrarHorarios()" placeholder="Ej: Pérez, Electrónica..." class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+            </div>
+            <button onclick="resetFiltros()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium self-end md:self-center pb-2 md:pb-0">
+                Limpiar filtros
+            </button>
+        </div>
+
+        <!-- Grilla de Horarios -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-left">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs uppercase tracking-wider">
+                            <th class="p-3 font-semibold text-center w-36">Módulo / Horario</th>
+                            <th class="p-3 font-semibold">Lunes</th>
+                            <th class="p-3 font-semibold">Martes</th>
+                            <th class="p-3 font-semibold">Miércoles</th>
+                            <th class="p-3 font-semibold">Jueves</th>
+                            <th class="p-3 font-semibold">Viernes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaHorariosBody" class="divide-y divide-slate-200 text-sm">
+                        <!-- Generado por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Agregar / Editar -->
+    <div id="modalClase" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitulo" class="text-lg font-bold text-slate-900">Agregar Nueva Clase</h3>
+                <button onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <form id="formClase" onsubmit="guardarClase(event)" class="space-y-4">
+                <input type="hidden" id="claseId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">DÍA</label>
+                    <select id="modalDia" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="Lunes">Lunes</option>
+                        <option value="Martes">Martes</option>
+                        <option value="Miércoles">Miércoles</option>
+                        <option value="Jueves">Jueves</option>
+                        <option value="Viernes">Viernes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">MÓDULO / HORARIO</label>
+                    <select id="modalModulo" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <!-- Se llena por JS -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">CURSO</label>
+                        <input type="text" id="modalCurso" placeholder="Ej: 4to" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">DIVISIÓN</label>
+                        <input type="text" id="modalDivision" placeholder="Ej: 1ra" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">GRUPO (Opcional - Taller)</label>
+                    <input type="text" id="modalGrupo" placeholder="Ej: Grupo A / Rotativo" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">NOMBRE DE LA MATERIA / TALLER</label>
+                    <input type="text" id="modalMateria" placeholder="Ej: Sistemas Tecnológicos" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">APELLIDO Y NOMBRE DEL DOCENTE</label>
+                    <input type="text" id="modalDocente" placeholder="Ej: Armani, Damián" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="cerrarModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow">Guardar Clase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200 mt-auto">
+        Panel de Horarios Escolares &bull; Escuela Técnica
+    </footer>
+
+    <!-- Script de Lógica -->
+    <script>
+        const modulosHorarios = [
+            { id: 1, rango: "07:45 - 08:45" },
+            { id: 2, rango: "08:55 - 09:55" },
+            { id: 3, rango: "10:05 - 11:05" },
+            { id: 4, rango: "11:10 - 12:10" },
+            { id: 5, rango: "12:25 - 13:25" },
+            { id: 6, rango: "13:30 - 14:30" },
+            { id: 7, rango: "14:40 - 15:40" },
+            { id: 8, rango: "15:50 - 16:50" },
+            { id: 9, rango: "16:55 - 17:55" }
+        ];
+
+        const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+        // Datos iniciales de ejemplo o recuperados de localStorage
+        let clases = JSON.parse(localStorage.getItem('horarios_tecnica')) || [
+            { id: 1, dia: "Lunes", moduloId: 1, curso: "4to", division: "1ra", grupo: "Grupo A", materia: "Prácticas Profesionalizantes", docente: "Armani, Damián" },
+            { id: 2, dia: "Lunes", moduloId: 2, curso: "4to", division: "1ra", grupo: "Grupo A", materia: "Prácticas Profesionalizantes", docente: "Armani, Damián" }
+        ];
+
+        function inicializarSelectModulos() {
+            const select = document.getElementById('modalModulo');
+            select.innerHTML = '';
+            modulosHorarios.forEach(m => {
+                select.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
+            });
+        }
+
+        function actualizarCursosFiltro() {
+            const select = document.getElementById('filtroCurso');
+            const cursosUnicos = [...new Set(clases.map(c => c.curso))].sort();
+            const valorActual = select.value;
+            
+            select.innerHTML = '<option value="">Todos los cursos</option>';
+            cursosUnicos.forEach(curso => {
+                select.innerHTML += `<option value="${curso}">${curso} Año</option>`;
+            });
+            select.value = valorActual;
+        }
+
+        function renderizarGrilla() {
+            actualizarCursosFiltro();
+            const tbody = document.getElementById('tablaHorariosBody');
+            tbody.innerHTML = '';
+
+            const filtroDia = document.getElementById('filtroDia').value;
+            const filtroCurso = document.getElementById('filtroCurso').value;
+            const textoBusqueda = document.getElementById('busquedaTexto').value.toLowerCase();
+
+            modulosHorarios.forEach(mod => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition";
+                
+                // Columna de Horario
+                let html = `<td class="p-3 border-r border-slate-200 bg-slate-50 text-center font-medium text-xs text-slate-600">
+                    <span class="block font-bold text-indigo-600">Módulo ${mod.id}</span>
+                    <span class="text-slate-500">${mod.rango}</span>
+                </td>`;
+
+                diasSemana.forEach(dia => {
+                    if (filtroDia && filtroDia !== dia) {
+                        html += `<td class="p-2 border-r border-slate-200 text-slate-300 text-center text-xs">Oculto</td>`;
+                        return;
+                    }
+
+                    // Buscar clases para este día y módulo
+                    let clasesModulo = clases.filter(c => c.dia === dia && c.moduloId === mod.id);
+
+                    // Aplicar filtros adicionales
+                    if (filtroCurso) {
+                        clasesModulo = clasesModulo.filter(c => c.curso === filtroCurso);
+                    }
+                    if (textoBusqueda) {
+                        clasesModulo = clasesModulo.filter(c => 
+                            c.docente.toLowerCase().includes(textoBusqueda) || 
+                            c.materia.toLowerCase().includes(textoBusqueda) ||
+                            c.curso.toLowerCase().includes(textoBusqueda)
+                        );
+                    }
+
+                    html += `<td class="p-2 border-r border-slate-200 align-top relative group">`;
+                    if (clasesModulo.length > 0) {
+                        clasesModulo.forEach(c => {
+                            html += `
+                                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-2 mb-2 text-xs shadow-xs relative">
+                                    <div class="font-bold text-indigo-900">${c.materia}</div>
+                                    <div class="text-slate-700 font-medium"><i class="fa-solid fa-user-tie text-[10px] mr-1"></i>${c.docente}</div>
+                                    <div class="text-indigo-700 mt-1 flex justify-between items-center">
+                                        <span>${c.curso}° ${c.division}° ${c.grupo ? `<span class="bg-indigo-200 text-indigo-900 px-1 rounded text-[10px]">${c.grupo}</span>` : ''}</span>
+                                        <div class="opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                            <button onclick="editarClase(${c.id})" class="text-indigo-600 hover:text-indigo-900 p-1"><i class="fa-solid fa-pen"></i></button>
+                                            <button onclick="eliminarClase(${c.id})" class="text-rose-600 hover:text-rose-900 p-1"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `<div class="h-full min-h-[50px] flex items-center justify-center text-slate-300 text-xs italic">Libre</div>`;
+                    }
+                    html += `</td>`;
+                });
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filtrarHorarios() {
+            renderizarGrilla();
+        }
+
+        function resetFiltros() {
+            document.getElementById('filtroDia').value = '';
+            document.getElementById('filtroCurso').value = '';
+            document.getElementById('busquedaTexto').value = '';
+            renderizarGrilla();
+        }
+
+        function abrirModal() {
+            document.getElementById('modalTitulo').innerText = "Agregar Nueva Clase";
+            document.getElementById('formClase').reset();
+            document.getElementById('claseId').value = '';
+            document.getElementById('modalClase').classList.remove('hidden');
+            document.getElementById('modalClase').classList.add('flex');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalClase').classList.remove('flex');
+            document.getElementById('modalClase').classList.add('hidden');
+        }
+
+        function guardarClase(e) {
+            e.preventDefault();
+            const id = document.getElementById('claseId').value;
+            const nuevaClase = {
+                id: id ? parseInt(id) : Date.now(),
+                dia: document.getElementById('modalDia').value,
+                moduloId: parseInt(document.getElementById('modalModulo').value),
+                curso: document.getElementById('modalCurso').value.trim(),
+                division: document.getElementById('modalDivision').value.trim(),
+                grupo: document.getElementById('modalGrupo').value.trim(),
+                materia: document.getElementById('modalMateria').value.trim(),
+                docente: document.getElementById('modalDocente').value.trim()
+            };
+
+            if (id) {
+                const index = clases.findIndex(c => c.id === parseInt(id));
+                if (index !== -1) clases[index] = nuevaClase;
+            } else {
+                clases.push(nuevaClase);
+            }
+
+            localStorage.setItem('horarios_tecnica', JSON.stringify(clases));
+            cerrarModal();
+            renderizarGrilla();
+        }
+
+        function editarClase(id) {
+            const c = clases.find(item => item.id === id);
+            if (!c) return;
+
+            document.getElementById('modalTitulo').innerText = "Editar Clase";
+            document.getElementById('claseId').value = c.id;
+            document.getElementById('modalDia').value = c.dia;
+            document.getElementById('modalModulo').value = c.moduloId;
+            document.getElementById('modalCurso').value = c.curso;
+            document.getElementById('modalDivision').value = c.division;
+            document.getElementById('modalGrupo').value = c.grupo || '';
+            document.getElementById('modalMateria').value = c.materia;
+            document.getElementById('modalDocente').value = c.docente;
+
+            document.getElementById('modalClase').classList.remove('hidden');
+            document.getElementById('modalClase').classList.add('flex');
+        }
+
+        function eliminarClase(id) {
+            if (confirm("¿Estás seguro de eliminar este módulo horario?")) {
+                clases = clases.filter(c => c.id !== id);
+                localStorage.setItem('horarios_tecnica', JSON.stringify(clases));
+                renderizarGrilla();
+            }
+        }
+
+        // Inicialización al cargar la página
+        window.onload = () => {
+            inicializarSelectModulos();
+            renderizarGrilla();
+        };
+    </script>
+</body>
+</html>

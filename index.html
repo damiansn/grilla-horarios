@@ -119,27 +119,23 @@
                             <option value="">Clase general (Sin división)</option>
                             <option value="G1">Grupo 1 (G1)</option>
                             <option value="G2">Grupo 2 (G2)</option>
+                            <option value="Ambos grupos">Ambos grupos</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-1">AULA / ESPACIO</label>
-                        <select id="modalAula" class="w-full border border-slate-300 rounded-lg p-2 outline-none font-medium text-slate-700">
+                        <label class="block font-semibold text-slate-600 mb-1">TIPO DE ESPACIO</label>
+                        <select id="tipoEspacio" onchange="actualizarNumeroEspacio()" class="w-full border border-slate-300 rounded-lg p-2 outline-none font-medium text-slate-700 bg-slate-50">
                             <option value="">Aula Común / Teórica</option>
-                            <optgroup label="Laboratorios y Talleres">
-                                <option value="Lab de Electrónica">Lab de Electrónica</option>
-                                <option value="Lab de Programación / Informática">Lab de Programación / Informática</option>
-                                <option value="Pañol / Taller de Electromecánica">Taller de Electromecánica</option>
-                                <option value="Taller de Ajuste">Taller de Ajuste</option>
-                                <option value="Taller de Soldadura">Taller de Soldadura</option>
-                                <option value="Taller de Electricidad">Taller de Electricidad</option>
-                                <option value="Taller de Hojalatería">Taller de Hojalatería</option>
-                            </optgroup>
-                            <optgroup label="Salones Específicos">
-                                <option value="Salón de Usos Múltiples (SUM)">Salón de Usos Múltiples (SUM)</option>
-                                <option value="Biblioteca">Biblioteca</option>
-                            </optgroup>
+                            <option value="Laboratorio">Laboratorio</option>
+                            <option value="Aula">Aula</option>
                         </select>
                     </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">NÚMERO DE ESPACIO</label>
+                    <select id="numeroEspacio" disabled class="w-full border border-slate-300 rounded-lg p-2 outline-none font-medium text-slate-700 bg-slate-100 disabled:opacity-50">
+                        <option value="">Primero seleccione el tipo...</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-600 mb-1">NOMBRE DE LA MATERIA / TALLER</label>
@@ -215,7 +211,6 @@
         let clases = [];
         let fileSha = null;
 
-        // Configuración fija de GitHub inyectada directamente
         const gitConfig = {
             user: "damiansn",
             repo: "grilla-horarios",
@@ -259,6 +254,41 @@
             }
         }
 
+        function actualizarNumeroEspacio(valorPreseleccionado = "") {
+            const tipo = document.getElementById("tipoEspacio").value;
+            const selectNumero = document.getElementById("numeroEspacio");
+            
+            selectNumero.innerHTML = '<option value="">Seleccione número...</option>';
+            
+            if (tipo === "Laboratorio") {
+                selectNumero.disabled = false;
+                selectNumero.classList.remove('bg-slate-100');
+                for (let i = 1; i <= 7; i++) {
+                    let optVal = `Laboratorio ${i}`;
+                    let option = document.createElement("option");
+                    option.value = optVal;
+                    option.textContent = optVal;
+                    if (optVal === valorPreseleccionado) option.selected = true;
+                    selectNumero.appendChild(option);
+                }
+            } else if (tipo === "Aula") {
+                selectNumero.disabled = false;
+                selectNumero.classList.remove('bg-slate-100');
+                for (let i = 1; i <= 20; i++) {
+                    let optVal = `Aula ${i}`;
+                    let option = document.createElement("option");
+                    option.value = optVal;
+                    option.textContent = optVal;
+                    if (optVal === valorPreseleccionado) option.selected = true;
+                    selectNumero.appendChild(option);
+                }
+            } else {
+                selectNumero.disabled = true;
+                selectNumero.classList.add('bg-slate-100');
+                selectNumero.innerHTML = '<option value="">Primero seleccione el tipo...</option>';
+            }
+        }
+
         async function cargarDatosRemotos() {
             try {
                 const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
@@ -283,7 +313,7 @@
                 } else {
                     console.warn("No se encontró horarios.json en GitHub o falló la autenticación. Se usarán datos por defecto.");
                     clases = [
-                        { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab de Programación / Informática", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" }
+                        { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Laboratorio 1", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" }
                     ];
                 }
             } catch (err) {
@@ -410,6 +440,7 @@
             document.getElementById('modalTitulo').innerText = "Asignar Clase / Taller";
             document.getElementById('formClase').reset();
             document.getElementById('claseId').value = '';
+            actualizarNumeroEspacio(); // Resetea y deshabilita el número
             
             const anio = document.getElementById('selectAnio').value;
             const divId = document.getElementById('selectDivision').value;
@@ -425,7 +456,10 @@
             document.getElementById('modalClase').classList.add('flex');
         }
 
-        function cerrarModalClase() { document.getElementById('modalClase').classList.remove('flex'); document.getElementById('modalClase').classList.add('hidden'); }
+        function cerrarModalClase() { 
+            document.getElementById('modalClase').classList.remove('flex'); 
+            document.getElementById('modalClase').classList.add('hidden'); 
+        }
 
         function guardarClase(e) {
             e.preventDefault();
@@ -434,6 +468,16 @@
             const division = document.getElementById('selectDivision').value;
             const form = document.getElementById('formClase');
 
+            const tipoEspacioVal = document.getElementById('tipoEspacio').value;
+            const numEspacioVal = document.getElementById('numeroEspacio').value;
+            let aulaFinal = "";
+
+            if (tipoEspacioVal === "Laboratorio" || tipoEspacioVal === "Aula") {
+                aulaFinal = numEspacioVal;
+            } else {
+                aulaFinal = ""; // Aula común u otro
+            }
+
             const nueva = {
                 id: id ? parseInt(id) : Date.now(),
                 anio: anio,
@@ -441,7 +485,7 @@
                 dia: id ? clases.find(c => c.id === parseInt(id)).dia : form.dataset.dia,
                 moduloId: id ? clases.find(c => c.id === parseInt(id)).moduloId : parseInt(form.dataset.moduloId),
                 grupo: document.getElementById('modalGrupo').value.trim(),
-                aula: document.getElementById('modalAula').value,
+                aula: aulaFinal,
                 materia: document.getElementById('modalMateria').value.trim(),
                 docente: document.getElementById('modalDocente').value.trim()
             };
@@ -464,14 +508,24 @@
             document.getElementById('modalTitulo').innerText = "Editar Módulo";
             document.getElementById('claseId').value = c.id;
             document.getElementById('modalGrupo').value = c.grupo || '';
-            document.getElementById('modalAula').value = c.aula || '';
             document.getElementById('modalMateria').value = c.materia;
             document.getElementById('modalDocente').value = c.docente;
+
+            // Determinar tipo y número de espacio a partir de c.aula (ej: "Laboratorio 3" o "Aula 12")
+            if (c.aula && c.aula.startsWith("Laboratorio")) {
+                document.getElementById('tipoEspacio').value = "Laboratorio";
+                actualizarNumeroEspacio(c.aula);
+            } else if (c.aula && c.aula.startsWith("Aula")) {
+                document.getElementById('tipoEspacio').value = "Aula";
+                actualizarNumeroEspacio(c.aula);
+            } else {
+                document.getElementById('tipoEspacio').value = "";
+                actualizarNumeroEspacio();
+            }
 
             const anio = document.getElementById('selectAnio').value;
             const divId = document.getElementById('selectDivision').value;
             const divisionObj = estructuraCursos[anio].find(d => d.id === divId);
-            const modObj = modulosHorarios.find(m => m.id === c.moduloId);
             document.getElementById('modalInfoUbicacion').innerText = `${divisionObj.nombre} — ${c.dia} (Módulo ${c.moduloId})`;
 
             document.getElementById('modalClase').classList.remove('hidden');

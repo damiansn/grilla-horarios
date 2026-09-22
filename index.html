@@ -22,8 +22,8 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> GitHub Sincronizado
+                <span id="estadoSincro" class="bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Google Sheets Sincronizado
                 </span>
             </div>
         </div>
@@ -209,13 +209,9 @@
 
         const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
         let clases = [];
-        let fileSha = null;
 
-        const gitConfig = {
-            user: "damiansn",
-            repo: "grilla-horarios",
-            token: "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"
-        };
+        // URL de tu Google Apps Script vinculada a Google Sheets
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyA2f8kNe-mZkO3XHO7rrBthbfkwRwFwb-UoubSihy3IvQCnrZgcS-NwJapfdcDiC3SxQ/exec";
 
         function cambiarAnio() {
             const anio = document.getElementById('selectAnio').value;
@@ -291,19 +287,14 @@
 
         async function cargarDatosRemotos() {
             try {
-                const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
-                const headers = { 'Authorization': `token ${gitConfig.token}` };
-
-                const res = await fetch(url, { headers });
+                const res = await fetch(scriptURL);
                 if (res.ok) {
                     const data = await res.json();
-                    fileSha = data.sha;
-                    const parsed = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-                    clases = parsed.clases || parsed;
-                    if (parsed.cursos) {
-                        for (let a in parsed.cursos) {
+                    clases = data.clases || [];
+                    if (data.cursos) {
+                        for (let a in data.cursos) {
                             if (estructuraCursos[a]) {
-                                parsed.cursos[a].forEach(savedDiv => {
+                                data.cursos[a].forEach(savedDiv => {
                                     let localDiv = estructuraCursos[a].find(d => d.id === savedDiv.id);
                                     if (localDiv) localDiv.preceptores = savedDiv.preceptores;
                                 });
@@ -311,47 +302,32 @@
                         }
                     }
                 } else {
-                    console.warn("No se encontró horarios.json en GitHub o falló la autenticación. Se usarán datos por defecto.");
-                    clases = [
-                        { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Laboratorio 1", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" }
-                    ];
+                    console.warn("No se pudo conectar al Google Sheet. Se usarán datos por defecto.");
                 }
             } catch (err) {
-                console.error("Error al conectar con GitHub:", err);
+                console.error("Error al cargar datos de Google Sheets:", err);
             }
             actualizarInfoCurso();
         }
 
         async function guardarDatosRemotos() {
             try {
-                const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
-                const payload = { clases: clases, cursos: estructuraCursos };
-                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-                
-                const body = {
-                    message: "Actualización automática de horarios y preceptores",
-                    content: contentEncoded,
-                    branch: "main"
-                };
-                if (fileSha) body.sha = fileSha;
+                const estadoBadge = document.getElementById('estadoSincro');
+                estadoBadge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
-                const res = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${gitConfig.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
+                const payload = { clases: clases, cursos: estructuraCursos };
+                
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Evita problemas de CORS con Apps Script
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    fileSha = data.content.sha;
-                } else {
-                    console.error("Error al guardar en GitHub. Respuesta:", await res.text());
-                }
+                estadoBadge.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Google Sheets Sincronizado';
             } catch (err) {
-                console.error("Excepción al intentar guardar en GitHub:", err);
+                console.error("Excepción al intentar guardar en Google Sheets:", err);
+                document.getElementById('estadoSincro').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error al sincronizar';
             }
         }
 
@@ -440,7 +416,7 @@
             document.getElementById('modalTitulo').innerText = "Asignar Clase / Taller";
             document.getElementById('formClase').reset();
             document.getElementById('claseId').value = '';
-            actualizarNumeroEspacio(); // Resetea y deshabilita el número
+            actualizarNumeroEspacio(); 
             
             const anio = document.getElementById('selectAnio').value;
             const divId = document.getElementById('selectDivision').value;
@@ -475,7 +451,7 @@
             if (tipoEspacioVal === "Laboratorio" || tipoEspacioVal === "Aula") {
                 aulaFinal = numEspacioVal;
             } else {
-                aulaFinal = ""; // Aula común u otro
+                aulaFinal = ""; 
             }
 
             const nueva = {
@@ -511,7 +487,6 @@
             document.getElementById('modalMateria').value = c.materia;
             document.getElementById('modalDocente').value = c.docente;
 
-            // Determinar tipo y número de espacio a partir de c.aula (ej: "Laboratorio 3" o "Aula 12")
             if (c.aula && c.aula.startsWith("Laboratorio")) {
                 document.getElementById('tipoEspacio').value = "Laboratorio";
                 actualizarNumeroEspacio(c.aula);

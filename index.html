@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Horarios - Ciclo Lectivo</title>
-    <!-- Tailwind CSS para un diseño moderno y rápido -->
+    <title>Gestión de Horarios - Escuela Técnica</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para iconos -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -21,15 +21,25 @@
                     <p class="text-indigo-200 text-sm">Escuela Técnica - Doble Jornada</p>
                 </div>
             </div>
-            <button onclick="abrirModal()" class="bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Nueva Clase / Módulo
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="abrirConfig()" class="bg-indigo-800 hover:bg-indigo-900 border border-indigo-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2" title="Configurar conexión con GitHub">
+                    <i class="fa-solid fa-gear"></i> Conexión GitHub
+                </button>
+                <button onclick="abrirModal()" class="bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nueva Clase
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
         
+        <!-- Alerta de Sincronización -->
+        <div id="estadoSync" class="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-center justify-between hidden">
+            <span><i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Atención:</strong> Configura los datos de GitHub en el ícono de engranaje para que los cambios se guarden en la nube.</span>
+        </div>
+
         <!-- Filtros y Buscador -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-4 items-center justify-between">
             <div class="flex flex-wrap gap-3 items-center w-full md:w-auto flex-grow">
@@ -82,6 +92,36 @@
         </div>
     </main>
 
+    <!-- Modal Configuración GitHub -->
+    <div id="modalConfig" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900">Configurar Conexión Remota</h3>
+                <button onclick="cerrarConfig()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">Para guardar los cambios de forma remota en tu repositorio de GitHub y que se actualicen para todos, ingresa tus datos:</p>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">USUARIO DE GITHUB</label>
+                    <input type="text" id="cfgUser" placeholder="ej: damiansn" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">NOMBRE DEL REPOSITORIO</label>
+                    <input type="text" id="cfgRepo" placeholder="ej: grilla-horarios" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">GITHUB PERSONAL ACCESS TOKEN (PAT)</label>
+                    <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
+                    <span class="text-[10px] text-slate-400 mt-1 block">Necesita permiso de escritura (`repo` o `contents`). Se guarda sólo en tu navegador.</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 mt-4 border-t border-slate-100">
+                <button onclick="cerrarConfig()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium">Cancelar</button>
+                <button onclick="guardarConfig()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow">Guardar y Conectar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para Agregar / Editar -->
     <div id="modalClase" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 overflow-y-auto max-h-[90vh]">
@@ -93,7 +133,7 @@
                 <input type="hidden" id="claseId">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">DÍA</label>
-                    <select id="modalDia" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <select id="modalDia" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                         <option value="Lunes">Lunes</option>
                         <option value="Martes">Martes</option>
                         <option value="Miércoles">Miércoles</option>
@@ -103,46 +143,39 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">MÓDULO / HORARIO</label>
-                    <select id="modalModulo" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <!-- Se llena por JS -->
-                    </select>
+                    <select id="modalModulo" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">CURSO</label>
-                        <input type="text" id="modalCurso" placeholder="Ej: 4to" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <input type="text" id="modalCurso" placeholder="Ej: 4to" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">DIVISIÓN</label>
-                        <input type="text" id="modalDivision" placeholder="Ej: 1ra" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <input type="text" id="modalDivision" placeholder="Ej: 1ra" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">GRUPO (Opcional - Taller)</label>
-                    <input type="text" id="modalGrupo" placeholder="Ej: Grupo A / Rotativo" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" id="modalGrupo" placeholder="Ej: Grupo A" class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">NOMBRE DE LA MATERIA / TALLER</label>
-                    <input type="text" id="modalMateria" placeholder="Ej: Sistemas Tecnológicos" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" id="modalMateria" placeholder="Ej: Electrónica" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">APELLIDO Y NOMBRE DEL DOCENTE</label>
-                    <input type="text" id="modalDocente" placeholder="Ej: Armani, Damián" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" id="modalDocente" placeholder="Ej: Armani, Damián" required class="w-full border border-slate-300 rounded-lg p-2 text-sm outline-none">
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="cerrarModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow">Guardar Clase</button>
+                    <button type="button" onclick="cerrarModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 text-sm font-medium">Cancelar</button>
+                    <button type="submit" id="btnGuardarClase" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow">Guardar en la nube</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200 mt-auto">
-        Panel de Horarios Escolares &bull; Escuela Técnica
-    </footer>
-
-    <!-- Script de Lógica -->
+    <!-- Script de Lógica remota con GitHub API -->
     <script>
         const modulosHorarios = [
             { id: 1, rango: "07:45 - 08:45" },
@@ -157,12 +190,15 @@
         ];
 
         const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+        let clases = [];
+        let fileSha = null; // Necesario para actualizar archivos en GitHub
 
-        // Datos iniciales de ejemplo o recuperados de localStorage
-        let clases = JSON.parse(localStorage.getItem('horarios_tecnica')) || [
-            { id: 1, dia: "Lunes", moduloId: 1, curso: "4to", division: "1ra", grupo: "Grupo A", materia: "Prácticas Profesionalizantes", docente: "Armani, Damián" },
-            { id: 2, dia: "Lunes", moduloId: 2, curso: "4to", division: "1ra", grupo: "Grupo A", materia: "Prácticas Profesionalizantes", docente: "Armani, Damián" }
-        ];
+        // Configuración de GitHub desde localStorage
+        let gitConfig = {
+            user: localStorage.getItem('gh_user') || '',
+            repo: localStorage.getItem('gh_repo') || '',
+            token: localStorage.getItem('gh_token') || ''
+        };
 
         function inicializarSelectModulos() {
             const select = document.getElementById('modalModulo');
@@ -170,6 +206,89 @@
             modulosHorarios.forEach(m => {
                 select.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
             });
+        }
+
+        async function cargarDatosRemotos() {
+            if (!gitConfig.user || !gitConfig.repo) {
+                document.getElementById('estadoSync').classList.remove('hidden');
+                // Datos por defecto locales si no está configurado
+                clases = [
+                    { id: 1, dia: "Lunes", moduloId: 1, curso: "4to", division: "1ra", grupo: "Grupo A", materia: "Prácticas Profesionalizantes", docente: "Armani, Damián" }
+                ];
+                renderizarGrilla();
+                return;
+            }
+
+            try {
+                const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
+                const headers = {};
+                if (gitConfig.token) headers['Authorization'] = `token ${gitConfig.token}`;
+
+                const res = await fetch(url, { headers });
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.sha;
+                    const jsonContent = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    clases = jsonContent;
+                    document.getElementById('estadoSync').classList.add('hidden');
+                } else if (res.status === 404) {
+                    // El archivo no existe todavía, lo dejamos vacío
+                    clases = [];
+                }
+            } catch (err) {
+                console.error("Error al cargar horarios remotos:", err);
+            }
+            renderizarGrilla();
+        }
+
+        async function guardarDatosRemotos() {
+            if (!gitConfig.user || !gitConfig.repo || !gitConfig.token) {
+                alert("Por favor, configura tus credenciales de GitHub (botón de engranaje) para guardar en la nube.");
+                abrirConfig();
+                return;
+            }
+
+            const btn = document.getElementById('btnGuardarClase');
+            btn.innerText = "Sincronizando...";
+            btn.disabled = true;
+
+            try {
+                const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
+                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(clases, null, 2))));
+                
+                const body = {
+                    message: "Actualización de grilla de horarios vía Web",
+                    content: contentEncoded,
+                    branch: "main"
+                };
+                if (fileSha) body.sha = fileSha;
+
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${gitConfig.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.content.sha;
+                    cerrarModal();
+                    renderizarGrilla();
+                    alert("¡Cambios guardados y sincronizados en GitHub exitosamente!");
+                } else {
+                    const errData = await res.json();
+                    alert("Error al guardar en GitHub: " + (errData.message || res.statusText));
+                }
+            } catch (err) {
+                alert("Error de red al intentar guardar.");
+                console.error(err);
+            } finally {
+                btn.innerText = "Guardar en la nube";
+                btn.disabled = false;
+            }
         }
 
         function actualizarCursosFiltro() {
@@ -197,7 +316,6 @@
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition";
                 
-                // Columna de Horario
                 let html = `<td class="p-3 border-r border-slate-200 bg-slate-50 text-center font-medium text-xs text-slate-600">
                     <span class="block font-bold text-indigo-600">Módulo ${mod.id}</span>
                     <span class="text-slate-500">${mod.rango}</span>
@@ -209,13 +327,9 @@
                         return;
                     }
 
-                    // Buscar clases para este día y módulo
                     let clasesModulo = clases.filter(c => c.dia === dia && c.moduloId === mod.id);
 
-                    // Aplicar filtros adicionales
-                    if (filtroCurso) {
-                        clasesModulo = clasesModulo.filter(c => c.curso === filtroCurso);
-                    }
+                    if (filtroCurso) clasesModulo = clasesModulo.filter(c => c.curso === filtroCurso);
                     if (textoBusqueda) {
                         clasesModulo = clasesModulo.filter(c => 
                             c.docente.toLowerCase().includes(textoBusqueda) || 
@@ -252,15 +366,38 @@
             });
         }
 
-        function filtrarHorarios() {
-            renderizarGrilla();
-        }
-
+        function filtrarHorarios() { renderizarGrilla(); }
         function resetFiltros() {
             document.getElementById('filtroDia').value = '';
             document.getElementById('filtroCurso').value = '';
             document.getElementById('busquedaTexto').value = '';
             renderizarGrilla();
+        }
+
+        function abrirConfig() {
+            document.getElementById('cfgUser').value = gitConfig.user;
+            document.getElementById('cfgRepo').value = gitConfig.repo;
+            document.getElementById('cfgToken').value = gitConfig.token;
+            document.getElementById('modalConfig').classList.remove('hidden');
+            document.getElementById('modalConfig').classList.add('flex');
+        }
+
+        function cerrarConfig() {
+            document.getElementById('modalConfig').classList.remove('flex');
+            document.getElementById('modalConfig').classList.add('hidden');
+        }
+
+        function guardarConfig() {
+            gitConfig.user = document.getElementById('cfgUser').value.trim();
+            gitConfig.repo = document.getElementById('cfgRepo').value.trim();
+            gitConfig.token = document.getElementById('cfgToken').value.trim();
+
+            localStorage.setItem('gh_user', gitConfig.user);
+            localStorage.setItem('gh_repo', gitConfig.repo);
+            localStorage.setItem('gh_token', gitConfig.token);
+
+            cerrarConfig();
+            cargarDatosRemotos();
         }
 
         function abrirModal() {
@@ -297,9 +434,7 @@
                 clases.push(nuevaClase);
             }
 
-            localStorage.setItem('horarios_tecnica', JSON.stringify(clases));
-            cerrarModal();
-            renderizarGrilla();
+            guardarDatosRemotos();
         }
 
         function editarClase(id) {
@@ -321,17 +456,15 @@
         }
 
         function eliminarClase(id) {
-            if (confirm("¿Estás seguro de eliminar este módulo horario?")) {
+            if (confirm("¿Estás seguro de eliminar este módulo? Se actualizará en la nube.")) {
                 clases = clases.filter(c => c.id !== id);
-                localStorage.setItem('horarios_tecnica', JSON.stringify(clases));
-                renderizarGrilla();
+                guardarDatosRemotos();
             }
         }
 
-        // Inicialización al cargar la página
         window.onload = () => {
             inicializarSelectModulos();
-            renderizarGrilla();
+            cargarDatosRemotos();
         };
     </script>
 </body>

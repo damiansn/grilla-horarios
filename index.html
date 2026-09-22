@@ -25,9 +25,6 @@
                 <button onclick="abrirConfig()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-2">
                     <i class="fa-solid fa-gear"></i> GitHub Sync
                 </button>
-                <button onclick="abrirModalClase()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Agregar Módulo
-                </button>
             </div>
         </div>
     </header>
@@ -57,12 +54,17 @@
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">DIVISIÓN / ORIENTACIÓN</label>
                 <select id="selectDivision" onchange="actualizarInfoCurso()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-semibold bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
-                    <!-- Dinámico según el año -->
+                    <!-- Dinámico -->
                 </select>
             </div>
-            <div class="md:col-span-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 flex flex-col justify-center">
-                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">PRECEPTOR / ES A CARGO</span>
-                <span id="infoPreceptores" class="text-sm font-bold text-indigo-900 mt-0.5">Páez, Elio / Fito</span>
+            <div class="md:col-span-2 bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
+                <div>
+                    <span class="block text-[10px] font-bold text-indigo-600 uppercase tracking-wider">PRECEPTOR / ES A CARGO</span>
+                    <span id="infoPreceptores" class="text-sm font-bold text-indigo-900 mt-0.5">Sin asignar</span>
+                </div>
+                <button onclick="editarPreceptorActual()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen"></i> Editar Preceptores
+                </button>
             </div>
         </div>
 
@@ -77,7 +79,7 @@
                 </div>
             </div>
             <div class="text-xs text-slate-500 font-medium">
-                Mostrando grilla para: <span id="labelCursoActual" class="font-bold text-slate-700">5to Año - Div. A (Electrónica)</span>
+                Visualizando grilla de: <span id="labelCursoActual" class="font-bold text-slate-700">5to Año - Div. A</span>
             </div>
         </div>
 
@@ -140,30 +142,8 @@
             </div>
             <form id="formClase" onsubmit="guardarClase(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="claseId">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold text-slate-600 mb-1">AÑO</label>
-                        <select id="modalAnio" onchange="actualizarDivModal()" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-                            <option value="1">1° Año</option><option value="2">2° Año</option><option value="3">3° Año</option>
-                            <option value="4">4° Año</option><option value="5">5° Año</option><option value="6">6° Año</option><option value="7">7° Año</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-600 mb-1">DIVISIÓN</label>
-                        <select id="modalDivision" class="w-full border border-slate-300 rounded-lg p-2 outline-none"></select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block font-semibold text-slate-600 mb-1">DÍA</label>
-                        <select id="modalDia" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-                            <option value="Lunes">Lunes</option><option value="Martes">Martes</option><option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option><option value="Viernes">Viernes</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-600 mb-1">MÓDULO HORARIO</label>
-                        <select id="modalModulo" class="w-full border border-slate-300 rounded-lg p-2 outline-none"></select>
-                    </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium">
+                    Editando para: <span id="modalInfoUbicacion" class="font-bold text-indigo-600"></span>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -175,7 +155,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-1">AULA / LAB (1 al 7)</label>
+                        <label class="block font-semibold text-slate-600 mb-1">AULA / LAB</label>
                         <input type="text" id="modalAula" placeholder="Ej: Lab 4 / Aula 13" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
                     </div>
                 </div>
@@ -189,7 +169,7 @@
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="cerrarModalClase()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-600">Cancelar</button>
-                    <button type="submit" id="btnGuardarClase" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">Guardar en la nube</button>
+                    <button type="submit" id="btnGuardarClase" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">Guardar cambios</button>
                 </div>
             </form>
         </div>
@@ -199,41 +179,41 @@
     <script>
         const estructuraCursos = {
             1: [
-                { id: '1A', nombre: '1° 1° - Electromecánica/Electrónica (A)', preceptores: 'Por definir' },
-                { id: '1B', nombre: '1° 2° - Electromecánica (B)', preceptores: 'Por definir' },
-                { id: '1C', nombre: '1° 3° - Electromecánica (C)', preceptores: 'Por definir' },
-                { id: '1D', nombre: '1° 4° - Electromecánica (D)', preceptores: 'Por definir' },
-                { id: '1E', nombre: '1° 5° - Electromecánica (E)', preceptores: 'Por definir' }
+                { id: '1A', nombre: '1° 1° - Electromecánica/Electrónica (A)', preceptores: '' },
+                { id: '1B', nombre: '1° 2° - Electromecánica (B)', preceptores: '' },
+                { id: '1C', nombre: '1° 3° - Electromecánica (C)', preceptores: '' },
+                { id: '1D', nombre: '1° 4° - Electromecánica (D)', preceptores: '' },
+                { id: '1E', nombre: '1° 5° - Electromecánica (E)', preceptores: '' }
             ],
             2: [
-                { id: '2A', nombre: '2° 1° - Ciclo Básico (A)', preceptores: 'Por definir' },
-                { id: '2B', nombre: '2° 2° - Ciclo Básico (B)', preceptores: 'Por definir' },
-                { id: '2C', nombre: '2° 3° - Ciclo Básico (C)', preceptores: 'Por definir' },
-                { id: '2D', nombre: '2° 4° - Ciclo Básico (D)', preceptores: 'Por definir' }
+                { id: '2A', nombre: '2° 1° - Ciclo Básico (A)', preceptores: '' },
+                { id: '2B', nombre: '2° 2° - Ciclo Básico (B)', preceptores: '' },
+                { id: '2C', nombre: '2° 3° - Ciclo Básico (C)', preceptores: '' },
+                { id: '2D', nombre: '2° 4° - Ciclo Básico (D)', preceptores: '' }
             ],
             3: [
-                { id: '3A', nombre: '3° 1° - Ciclo Básico (A)', preceptores: 'Por definir' },
-                { id: '3B', nombre: '3° 2° - Ciclo Básico (B)', preceptores: 'Por definir' },
-                { id: '3C', nombre: '3° 3° - Ciclo Básico (C)', preceptores: 'Por definir' },
-                { id: '3D', nombre: '3° 4° - Ciclo Básico (D)', preceptores: 'Por definir' }
+                { id: '3A', nombre: '3° 1° - Ciclo Básico (A)', preceptores: '' },
+                { id: '3B', nombre: '3° 2° - Ciclo Básico (B)', preceptores: '' },
+                { id: '3C', nombre: '3° 3° - Ciclo Básico (C)', preceptores: '' },
+                { id: '3D', nombre: '3° 4° - Ciclo Básico (D)', preceptores: '' }
             ],
             4: [
-                { id: '4A', nombre: '4° Año - Div. A (Electrónica)', preceptores: 'Por definir' },
-                { id: '4B', nombre: '4° Año - Div. B (Electromecánica)', preceptores: 'Por definir' },
-                { id: '4C', nombre: '4° Año - Div. C (Electromecánica)', preceptores: 'Por definir' },
-                { id: '4D', nombre: '4° Año - Div. D (Electrónica)', preceptores: 'Por definir' }
+                { id: '4A', nombre: '4° Año - Div. A (Electrónica)', preceptores: '' },
+                { id: '4B', nombre: '4° Año - Div. B (Electromecánica)', preceptores: '' },
+                { id: '4C', nombre: '4° Año - Div. C (Electromecánica)', preceptores: '' },
+                { id: '4D', nombre: '4° Año - Div. D (Electrónica)', preceptores: '' }
             ],
             5: [
-                { id: '5A', nombre: '5° Año - Div. A (Electrónica)', preceptores: 'Páez, Elio / Fito' },
-                { id: '5B', nombre: '5° Año - Div. B (Electromecánica)', preceptores: 'Por definir' }
+                { id: '5A', nombre: '5° Año - Div. A (Electrónica - G1 y G2 concurrentes)', preceptores: 'Páez, Elio / Fito' },
+                { id: '5B', nombre: '5° Año - Div. B (Electromecánica)', preceptores: '' }
             ],
             6: [
-                { id: '6A', nombre: '6° Año - Div. A (Electrónica)', preceptores: 'Por definir' },
-                { id: '6B', nombre: '6° Año - Div. B (Electromecánica)', preceptores: 'Por definir' }
+                { id: '6A', nombre: '6° Año - Div. A (Electrónica - G1 y G2 concurrentes)', preceptores: '' },
+                { id: '6B', nombre: '6° Año - Div. B (Electromecánica)', preceptores: '' }
             ],
             7: [
-                { id: '7A', nombre: '7° Año - Div. A (Electrónica - G1 y G2 concurrentes)', preceptores: 'Por definir' },
-                { id: '7B', nombre: '7° Año - Div. B (Electromecánica)', preceptores: 'Por definir' }
+                { id: '7A', nombre: '7° Año - Div. A (Electrónica - G1 y G2 concurrentes)', preceptores: '' },
+                { id: '7B', nombre: '7° Año - Div. B (Electromecánica)', preceptores: '' }
             ]
         };
 
@@ -270,32 +250,35 @@
             actualizarInfoCurso();
         }
 
-        function actualizarDivModal() {
-            const anio = document.getElementById('modalAnio').value;
-            const selectDiv = document.getElementById('modalDivision');
-            selectDiv.innerHTML = '';
-            
-            estructuraCursos[anio].forEach(div => {
-                selectDiv.innerHTML += `<option value="${div.id}">${div.nombre}</option>`;
-            });
-        }
-
         function actualizarInfoCurso() {
             const anio = document.getElementById('selectAnio').value;
             const divId = document.getElementById('selectDivision').value;
             const divisionObj = estructuraCursos[anio].find(d => d.id === divId);
             
             if (divisionObj) {
-                document.getElementById('infoPreceptores').innerText = divisionObj.preceptores;
+                document.getElementById('infoPreceptores').innerText = divisionObj.preceptores || 'Sin asignar (Hacé clic en Editar)';
                 document.getElementById('labelCursoActual').innerText = divisionObj.nombre;
             }
             renderizarGrilla();
         }
 
+        function editarPreceptorActual() {
+            const anio = document.getElementById('selectAnio').value;
+            const divId = document.getElementById('selectDivision').value;
+            const divisionObj = estructuraCursos[anio].find(d => d.id === divId);
+            
+            if (!divisionObj) return;
+            const nuevoPreceptor = prompt(`Ingrese el/los preceptor/es a cargo para ${divisionObj.nombre}:`, divisionObj.preceptores || '');
+            if (nuevoPreceptor !== null) {
+                divisionObj.preceptores = nuevoPreceptor.trim();
+                actualizarInfoCurso();
+                guardarDatosRemotos();
+            }
+        }
+
         async function cargarDatosRemotos() {
             if (!gitConfig.user || !gitConfig.repo) {
                 document.getElementById('estadoSync').classList.remove('hidden');
-                // Datos de ejemplo basados en tu foto (G1 y G2 conviven en módulos de tarde)
                 clases = [
                     { id: 1, anio: "5", division: "5A", dia: "Lunes", moduloId: 1, grupo: "", aula: "Lab 4", materia: "ANÁLISIS MATEMÁTICO", docente: "(PROV. CALVIELLO, Natalia) FILISTEO, Marcelo" },
                     { id: 2, anio: "5", division: "5A", dia: "Lunes", moduloId: 6, grupo: "G1", aula: "Lab 3", materia: "AEA", docente: "PROV. ARMANI DAMIAN" },
@@ -314,32 +297,39 @@
                 if (res.ok) {
                     const data = await res.json();
                     fileSha = data.sha;
-                    clases = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    const parsed = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    clases = parsed.clases || parsed; // Compatible con formatos anteriores
+                    if (parsed.cursos) {
+                        // Sincronizar estructuras de cursos guardadas (preceptores)
+                        for (let a in parsed.cursos) {
+                            if (estructuraCursos[a]) {
+                                parsed.cursos[a].forEach(savedDiv => {
+                                    let localDiv = estructuraCursos[a].find(d => d.id === savedDiv.id);
+                                    if (localDiv) localDiv.preceptores = savedDiv.preceptores;
+                                });
+                            }
+                        }
+                    }
                     document.getElementById('estadoSync').classList.add('hidden');
                 }
             } catch (err) {
                 console.error("Error al cargar:", err);
             }
-            renderizarGrilla();
+            actualizarInfoCurso();
         }
 
         async function guardarDatosRemotos() {
             if (!gitConfig.user || !gitConfig.repo || !gitConfig.token) {
-                alert("Configura tus credenciales de GitHub para guardar en la nube.");
-                abrirConfig();
-                return;
+                return; // Si no hay git configurado, trabaja local sin molestar
             }
-
-            const btn = document.getElementById('btnGuardarClase');
-            btn.innerText = "Guardando...";
-            btn.disabled = true;
 
             try {
                 const url = `https://api.github.com/repos/${gitConfig.user}/${gitConfig.repo}/contents/horarios.json`;
-                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(clases, null, 2))));
+                const payload = { clases: clases, cursos: estructuraCursos };
+                const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
                 
                 const body = {
-                    message: "Actualización de horarios concurrentes",
+                    message: "Actualización de horarios y preceptores",
                     content: contentEncoded,
                     branch: "main"
                 };
@@ -357,17 +347,9 @@
                 if (res.ok) {
                     const data = await res.json();
                     fileSha = data.content.sha;
-                    cerrarModalClase();
-                    renderizarGrilla();
-                    alert("¡Actualizado en GitHub con éxito!");
-                } else {
-                    alert("Error al guardar en GitHub.");
                 }
             } catch (err) {
-                console.error(err);
-            } finally {
-                btn.innerText = "Guardar en la nube";
-                btn.disabled = false;
+                console.error("Error al guardar en GitHub:", err);
             }
         }
 
@@ -405,10 +387,12 @@
                         );
                     }
 
-                    // Ordenar para que aparezca G1 y G2 ordenados si conviven
+                    // Ordenar si hay grupos concurrentes (G1, G2)
                     clasesFiltradas.sort((a, b) => (a.grupo || '').localeCompare(b.grupo || ''));
 
-                    html += `<td class="p-2 border-r border-slate-200 align-top relative group">`;
+                    // Cuadrante limpio interactivo
+                    html += `<td class="p-2 border-r border-slate-200 align-top relative group min-h-[75px] cursor-pointer hover:bg-indigo-50/30 transition" onclick="abrirModalCelda('${dia}', ${mod.id})">`;
+                    
                     if (clasesFiltradas.length > 0) {
                         clasesFiltradas.forEach(c => {
                             html += `
@@ -422,7 +406,7 @@
                                         <span class="font-semibold text-indigo-700">
                                             ${c.aula ? `<i class="fa-solid fa-door-open mr-1"></i>${c.aula}` : 'Aula común'}
                                         </span>
-                                        <div class="opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                        <div class="flex gap-1" onclick="event.stopPropagation()">
                                             <button onclick="editarClase(${c.id})" class="text-indigo-600 hover:text-indigo-900 p-1"><i class="fa-solid fa-pen"></i></button>
                                             <button onclick="eliminarClase(${c.id})" class="text-rose-600 hover:text-rose-900 p-1"><i class="fa-solid fa-trash"></i></button>
                                         </div>
@@ -430,8 +414,20 @@
                                 </div>
                             `;
                         });
+                        // Botón para agregar otro grupo concurrente (ej: agregar G2 si ya está G1)
+                        html += `
+                            <div class="text-center mt-1" onclick="event.stopPropagation()">
+                                <button onclick="abrirModalCelda('${dia}', ${mod.id})" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold bg-white border border-indigo-200 px-2 py-0.5 rounded-full shadow-2xs">
+                                    <i class="fa-solid fa-plus mr-1"></i> Agregar Grupo / Clase
+                                </button>
+                            </div>
+                        `;
                     } else {
-                        html += `<div class="h-full min-h-[55px] flex items-center justify-center text-slate-300 text-xs italic">Libre</div>`;
+                        html += `
+                            <div class="h-full min-h-[60px] flex items-center justify-center text-slate-300 text-xs italic group-hover:text-indigo-500 transition">
+                                <i class="fa-solid fa-plus mr-1 text-[10px]"></i> Asignar
+                            </div>
+                        `;
                     }
                     html += `</td>`;
                 });
@@ -460,21 +456,22 @@
             cargarDatosRemotos();
         }
 
-        function inicializarSelectModulosModal() {
-            const select = document.getElementById('modalModulo');
-            select.innerHTML = '';
-            modulosHorarios.forEach(m => {
-                select.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
-            });
-        }
-
-        function abrirModalClase() {
+        function abrirModalCelda(dia, moduloId) {
             document.getElementById('modalTitulo').innerText = "Asignar Clase / Taller";
             document.getElementById('formClase').reset();
             document.getElementById('claseId').value = '';
-            document.getElementById('modalAnio').value = document.getElementById('selectAnio').value;
-            actualizarDivModal();
-            document.getElementById('modalDivision').value = document.getElementById('selectDivision').value;
+            
+            const anio = document.getElementById('selectAnio').value;
+            const divId = document.getElementById('selectDivision').value;
+            const divisionObj = estructuraCursos[anio].find(d => d.id === divId);
+            
+            const modObj = modulosHorarios.find(m => m.id === moduloId);
+            document.getElementById('modalInfoUbicacion').innerText = `${divisionObj.nombre} — ${dia} (Módulo ${moduloId}: ${modObj.rango})`;
+            
+            // Guardar temporalmente día y módulo en atributos del form
+            document.getElementById('formClase').dataset.dia = dia;
+            document.getElementById('formClase').dataset.moduloId = moduloId;
+
             document.getElementById('modalClase').classList.remove('hidden');
             document.getElementById('modalClase').classList.add('flex');
         }
@@ -484,12 +481,16 @@
         function guardarClase(e) {
             e.preventDefault();
             const id = document.getElementById('claseId').value;
+            const anio = document.getElementById('selectAnio').value;
+            const division = document.getElementById('selectDivision').value;
+            const form = document.getElementById('formClase');
+
             const nueva = {
                 id: id ? parseInt(id) : Date.now(),
-                anio: document.getElementById('modalAnio').value,
-                division: document.getElementById('modalDivision').value,
-                dia: document.getElementById('modalDia').value,
-                moduloId: parseInt(document.getElementById('modalModulo').value),
+                anio: anio,
+                division: division,
+                dia: id ? clases.find(c => c.id === parseInt(id)).dia : form.dataset.dia,
+                moduloId: id ? clases.find(c => c.id === parseInt(id)).moduloId : parseInt(form.dataset.moduloId),
                 grupo: document.getElementById('modalGrupo').value.trim(),
                 aula: document.getElementById('modalAula').value.trim(),
                 materia: document.getElementById('modalMateria').value.trim(),
@@ -502,38 +503,43 @@
             } else {
                 clases.push(nueva);
             }
+            cerrarModalClase();
+            renderizarGrilla();
             guardarDatosRemotos();
         }
 
         function editarClase(id) {
+            event.stopPropagation();
             const c = clases.find(item => item.id === id);
             if (!c) return;
             document.getElementById('modalTitulo').innerText = "Editar Módulo";
             document.getElementById('claseId').value = c.id;
-            document.getElementById('modalAnio').value = c.anio;
-            actualizarDivModal();
-            document.getElementById('modalDivision').value = c.division;
-            document.getElementById('modalDia').value = c.dia;
-            document.getElementById('modalModulo').value = c.moduloId;
             document.getElementById('modalGrupo').value = c.grupo || '';
             document.getElementById('modalAula').value = c.aula || '';
             document.getElementById('modalMateria').value = c.materia;
             document.getElementById('modalDocente').value = c.docente;
+
+            const anio = document.getElementById('selectAnio').value;
+            const divId = document.getElementById('selectDivision').value;
+            const divisionObj = estructuraCursos[anio].find(d => d.id === divId);
+            const modObj = modulosHorarios.find(m => m.id === c.moduloId);
+            document.getElementById('modalInfoUbicacion').innerText = `${divisionObj.nombre} — ${c.dia} (Módulo ${c.moduloId})`;
 
             document.getElementById('modalClase').classList.remove('hidden');
             document.getElementById('modalClase').classList.add('flex');
         }
 
         function eliminarClase(id) {
+            event.stopPropagation();
             if (confirm("¿Estás seguro de eliminar este registro?")) {
                 clases = clases.filter(c => c.id !== id);
+                renderizarGrilla();
                 guardarDatosRemotos();
             }
         }
 
         window.onload = () => {
             cambiarAnio();
-            inicializarSelectModulosModal();
             cargarDatosRemotos();
         };
     </script>

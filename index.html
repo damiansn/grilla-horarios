@@ -7,17 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grilla de Horarios - E.E.S.T N°6 "Siderurgia Argentina"</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- ACÁ PEGÁS LOS ESTILOS DE IMPRESIÓN -->
+    <!-- Estilos de Impresión -->
     <style>
         @media print {
-            /* Ocultar elementos de navegación y controles al imprimir */
             header, 
             .bg-white.p-5, 
             button,
@@ -26,7 +18,6 @@
                 display: none !important;
             }
 
-            /* Limpiar colores y márgenes de la página */
             body, main {
                 background: white !important;
                 padding: 0 !important;
@@ -34,13 +25,11 @@
                 color: black !important;
             }
 
-            /* Quitar sombras y bordes innecesarios de las tarjetas */
             .bg-white {
                 box-shadow: none !important;
                 border: none !important;
             }
 
-            /* Ajustar la tabla para impresión */
             table {
                 width: 100% !important;
                 font-size: 11px !important;
@@ -52,14 +41,12 @@
                 padding: 6px !important;
             }
 
-            /* Forzar que se impriman los colores de fondo de los módulos */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
         }
     </style>
-</head>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -118,27 +105,25 @@
         </div>
 
         <!-- Barra de Filtros / Búsqueda Global -->
-   
-<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
-    <div class="flex items-center gap-2 w-full md:w-96">
-        <div class="relative w-full">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                <i class="fa-solid fa-search text-xs"></i>
-            </span>
-            <input type="text" id="busquedaGlobal" oninput="renderizarGrilla()" placeholder="Buscar docente, materia o laboratorio..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex items-center gap-2 w-full md:w-96">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-search text-xs"></i>
+                    </span>
+                    <input type="text" id="busquedaGlobal" oninput="renderizarGrilla()" placeholder="Buscar docente, materia o laboratorio..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="text-xs text-slate-500 font-medium">
+                    Visualizando grilla de: <span id="labelCursoActual" class="font-bold text-slate-700">5to Año - Div. A</span>
+                </div>
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow transition flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-print"></i> Imprimir Grilla
+                </button>
+            </div>
         </div>
-    </div>
-    
-    <!-- Contenedor derecho: Etiqueta y Botón de Imprimir -->
-    <div class="flex items-center gap-4">
-        <div class="text-xs text-slate-500 font-medium">
-            Visualizando grilla de: <span id="labelCursoActual" class="font-bold text-slate-700">5to Año - Div. A</span>
-        </div>
-        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow transition flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-print"></i> Imprimir Grilla
-        </button>
-    </div>
-</div>
 
         <!-- Grilla de Horarios -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -178,12 +163,12 @@
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">GRUPO (Concurrente)</label>
                         <select id="modalGrupo" class="w-full border border-slate-300 rounded-lg p-2 outline-none">
-    <option value="">Clase general (Sin división)</option>
-    <option value="G1">Grupo 1 (G1)</option>
-    <option value="G2">Grupo 2 (G2)</option>
-    <option value="G3">Grupo 3 (G3)</option> <!-- Corregido aquí -->
-    <option value="Ambos grupos">Ambos grupos</option>
-</select>
+                            <option value="">Clase general (Sin división)</option>
+                            <option value="G1">Grupo 1 (G1)</option>
+                            <option value="G2">Grupo 2 (G2)</option>
+                            <option value="G3">Grupo 3 (G3)</option>
+                            <option value="Ambos grupos">Ambos grupos</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">TIPO DE ESPACIO</label>
@@ -206,7 +191,15 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-600 mb-1">DOCENTE (Apellido y Nombre / Situación de Revista)</label>
-                    <input type="text" id="modalDocente" placeholder="Ej: (PROV. ARMANI DAMIAN) FILISTEO, MARCELO" required class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                    <!-- Agregado list="listaDocentes" para sugerencias automáticas -->
+                    <input type="text" id="modalDocente" list="listaDocentes" placeholder="Ej: Atilio, Luchesi" required class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                    
+                    <!-- Datalist dinámico -->
+                    <datalist id="listaDocentes">
+                        <option value="(ARMANI DAMIAN)">
+                        <option value="FILISTEO, MARCELO">
+                        <option value="PÁEZ, ELIO">
+                    </datalist>
                 </div>
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" onclick="cerrarModalClase()" class="px-3 py-2 border border-slate-300 rounded-lg text-slate-600">Cancelar</button>
@@ -273,7 +266,6 @@
         const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
         let clases = [];
 
-        // URL de tu Google Apps Script vinculada a Google Sheets
         const scriptURL = "https://script.google.com/macros/s/AKfycbyA2f8kNe-mZkO3XHO7rrBthbfkwRwFwb-UoubSihy3IvQCnrZgcS-NwJapfdcDiC3SxQ/exec";
 
         function cambiarAnio() {
@@ -371,6 +363,7 @@
                 console.error("Error al cargar datos de Google Sheets:", err);
             }
             actualizarInfoCurso();
+            actualizarDatalistDocentes(); // Actualizar sugerencias ni bien carga
         }
 
         async function guardarDatosRemotos() {
@@ -382,7 +375,7 @@
                 
                 await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'no-cors', // Evita problemas de CORS con Apps Script
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
@@ -392,6 +385,24 @@
                 console.error("Excepción al intentar guardar en Google Sheets:", err);
                 document.getElementById('estadoSincro').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Error al sincronizar';
             }
+        }
+
+        // Función para actualizar dinámicamente las sugerencias de docentes
+        function actualizarDatalistDocentes() {
+            const datalist = document.getElementById('listaDocentes');
+            const docentesUnicos = [...new Set(clases.map(c => c.docente))].filter(Boolean);
+            
+            // Mantener algunos por defecto si querés, o vaciar y llenar con los cargados
+            // Acá sumamos los ya existentes en las clases
+            docentesUnicos.forEach(doc => {
+                // Verificar si ya existe en las opciones para no duplicar
+                let existe = Array.from(datalist.options).some(opt => opt.value === doc);
+                if (!existe) {
+                    let opt = document.createElement('option');
+                    opt.value = doc;
+                    datalist.appendChild(opt);
+                }
+            });
         }
 
         function renderizarGrilla() {
@@ -535,6 +546,10 @@
             } else {
                 clases.push(nueva);
             }
+
+            // Actualizar datalist para que recuerde al docente recién ingresado
+            actualizarDatalistDocentes();
+
             cerrarModalClase();
             renderizarGrilla();
             guardarDatosRemotos();

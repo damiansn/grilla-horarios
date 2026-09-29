@@ -14,7 +14,8 @@
             .bg-white.p-5, 
             button,
             .fa-solid,
-            input {
+            input,
+            #barraPortapapeles {
                 display: none !important;
             }
 
@@ -72,6 +73,22 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+        <!-- Barra de Portapapeles Activo (Se muestra solo si hay algo copiado) -->
+        <div id="barraPortapapeles" class="hidden bg-amber-50 border border-amber-200 p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                    <i class="fa-solid fa-clipboard"></i>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-amber-600 uppercase tracking-wider">Bloque en Portapapeles (Listo para pegar)</span>
+                    <span id="infoBloqueCopiado" class="text-xs font-bold text-amber-950"></span>
+                </div>
+            </div>
+            <button onclick="limpiarPortapapeles()" class="text-xs text-amber-700 hover:text-amber-900 font-bold px-2.5 py-1 rounded-lg hover:bg-amber-100 transition">
+                <i class="fa-solid fa-xmark mr-1"></i> Descartar
+            </button>
+        </div>
 
         <!-- Panel de Selección de Curso y Preceptores -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -191,12 +208,10 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-600 mb-1">DOCENTE (Apellido y Nombre / Situación de Revista)</label>
-                    <!-- Agregado list="listaDocentes" para sugerencias automáticas -->
-                    <input type="text" id="modalDocente" list="listaDocentes" placeholder="Ej: Atilio, Luchesi" required class="w-full border border-slate-300 rounded-lg p-2 outline-none">
+                    <input type="text" id="modalDocente" list="listaDocentes" placeholder="Ej: (PROV. ARMANI DAMIAN) FILISTEO, MARCELO" required class="w-full border border-slate-300 rounded-lg p-2 outline-none">
                     
-                    <!-- Datalist dinámico -->
                     <datalist id="listaDocentes">
-                        <option value="(ARMANI DAMIAN)">
+                        <option value="(PROV. ARMANI DAMIAN)">
                         <option value="FILISTEO, MARCELO">
                         <option value="PÁEZ, ELIO">
                     </datalist>
@@ -265,6 +280,7 @@
 
         const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
         let clases = [];
+        let bloqueCopiado = null; // Almacena temporalmente el bloque copiado
 
         const scriptURL = "https://script.google.com/macros/s/AKfycbyA2f8kNe-mZkO3XHO7rrBthbfkwRwFwb-UoubSihy3IvQCnrZgcS-NwJapfdcDiC3SxQ/exec";
 
@@ -363,7 +379,7 @@
                 console.error("Error al cargar datos de Google Sheets:", err);
             }
             actualizarInfoCurso();
-            actualizarDatalistDocentes(); // Actualizar sugerencias ni bien carga
+            actualizarDatalistDocentes();
         }
 
         async function guardarDatosRemotos() {
@@ -387,15 +403,11 @@
             }
         }
 
-        // Función para actualizar dinámicamente las sugerencias de docentes
         function actualizarDatalistDocentes() {
             const datalist = document.getElementById('listaDocentes');
             const docentesUnicos = [...new Set(clases.map(c => c.docente))].filter(Boolean);
             
-            // Mantener algunos por defecto si querés, o vaciar y llenar con los cargados
-            // Acá sumamos los ya existentes en las clases
             docentesUnicos.forEach(doc => {
-                // Verificar si ya existe en las opciones para no duplicar
                 let existe = Array.from(datalist.options).some(opt => opt.value === doc);
                 if (!existe) {
                     let opt = document.createElement('option');
@@ -403,6 +415,57 @@
                     datalist.appendChild(opt);
                 }
             });
+        }
+
+        // --- FUNCIONES DE COPIAR Y PEGAR BLOQUE ---
+        function copiarBloque(id, event) {
+            event.stopPropagation();
+            const claseOriginal = clases.find(c => c.id === id);
+            if (!claseOriginal) return;
+
+            bloqueCopiado = {
+                grupo: claseOriginal.grupo || '',
+                aula: claseOriginal.aula || '',
+                materia: claseOriginal.materia,
+                docente: claseOriginal.docente
+            };
+
+            const barra = document.getElementById('barraPortapapeles');
+            const info = document.getElementById('infoBloqueCopiado');
+            info.innerText = `${claseOriginal.materia} — ${claseOriginal.docente} ${claseOriginal.grupo ? '('+claseOriginal.grupo+')' : ''}`;
+            barra.classList.remove('hidden');
+            barra.classList.add('flex');
+        }
+
+        function limpiarPortapapeles() {
+            bloqueCopiado = null;
+            const barra = document.getElementById('barraPortapapeles');
+            barra.classList.remove('flex');
+            barra.classList.add('hidden');
+        }
+
+        function pegarBloque(dia, moduloId, event) {
+            event.stopPropagation();
+            if (!bloqueCopiado) return;
+
+            const anioActual = document.getElementById('selectAnio').value;
+            const divActual = document.getElementById('selectDivision').value;
+
+            const nuevaClase = {
+                id: Date.now(),
+                anio: anioActual,
+                division: divActual,
+                dia: dia,
+                moduloId: moduloId,
+                grupo: bloqueCopiado.grupo,
+                aula: bloqueCopiado.aula,
+                materia: bloqueCopiado.materia,
+                docente: bloqueCopiado.docente
+            };
+
+            clases.push(nuevaClase);
+            renderizarGrilla();
+            guardarDatosRemotos();
         }
 
         function renderizarGrilla() {
@@ -456,27 +519,43 @@
                                         <span class="font-semibold text-indigo-700">
                                             ${c.aula ? `<i class="fa-solid fa-door-open mr-1"></i>${c.aula}` : 'Aula común'}
                                         </span>
-                                        <div class="flex gap-1" onclick="event.stopPropagation()">
-                                            <button onclick="editarClase(${c.id})" class="text-indigo-600 hover:text-indigo-900 p-1"><i class="fa-solid fa-pen"></i></button>
-                                            <button onclick="eliminarClase(${c.id})" class="text-rose-600 hover:text-rose-900 p-1"><i class="fa-solid fa-trash"></i></button>
+                                        <div class="flex gap-1">
+                                            <button onclick="copiarBloque(${c.id}, event)" title="Copiar bloque" class="text-amber-600 hover:text-amber-800 p-1 bg-amber-50 rounded"><i class="fa-solid fa-copy"></i></button>
+                                            <button onclick="editarClase(${c.id})" title="Editar" class="text-indigo-600 hover:text-indigo-900 p-1"><i class="fa-solid fa-pen"></i></button>
+                                            <button onclick="eliminarClase(${c.id})" title="Eliminar" class="text-rose-600 hover:text-rose-900 p-1"><i class="fa-solid fa-trash"></i></button>
                                         </div>
                                     </div>
                                 </div>
                             `;
                         });
+                        
+                        html += `<div class="flex flex-wrap gap-1 justify-center mt-1" onclick="event.stopPropagation()">`;
+                        if (bloqueCopiado) {
+                            html += `
+                                <button onclick="pegarBloque('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2 py-1 rounded-full shadow-sm hover:bg-amber-100 transition">
+                                    <i class="fa-solid fa-paste mr-1"></i> Pegar
+                                </button>
+                            `;
+                        }
                         html += `
-                            <div class="text-center mt-1" onclick="event.stopPropagation()">
                                 <button onclick="abrirModalCelda('${dia}', ${mod.id})" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold bg-white border border-indigo-200 px-2.5 py-1 rounded-full shadow-sm hover:bg-indigo-50 transition">
-                                    <i class="fa-solid fa-plus mr-1"></i> Agregar Grupo / Clase
+                                    <i class="fa-solid fa-plus mr-1"></i> Agregar
                                 </button>
                             </div>
                         `;
                     } else {
                         html += `
-                            <div class="h-full min-h-[65px] flex items-center justify-center text-slate-300 text-xs italic group-hover:text-indigo-500 transition">
-                                <i class="fa-solid fa-plus mr-1 text-[10px]"></i> Asignar
-                            </div>
+                            <div class="h-full min-h-[65px] flex flex-col items-center justify-center text-slate-300 text-xs italic group-hover:text-indigo-500 transition gap-1">
+                                <div><i class="fa-solid fa-plus mr-1 text-[10px]"></i> Asignar</div>
                         `;
+                        if (bloqueCopiado) {
+                            html += `
+                                <button onclick="pegarBloque('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-sm hover:bg-amber-100 transition not-italic">
+                                    <i class="fa-solid fa-paste mr-1"></i> Pegar aquí
+                                </button>
+                            `;
+                        }
+                        html += `</div>`;
                     }
                     html += `</td>`;
                 });
@@ -547,9 +626,7 @@
                 clases.push(nueva);
             }
 
-            // Actualizar datalist para que recuerde al docente recién ingresado
             actualizarDatalistDocentes();
-
             cerrarModalClase();
             renderizarGrilla();
             guardarDatosRemotos();

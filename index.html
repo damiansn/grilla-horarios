@@ -74,7 +74,7 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
 
-        <!-- Barra de Portapapeles Activo (Se muestra solo si hay algo copiado) -->
+        <!-- Barra de Portapapeles Activo -->
         <div id="barraPortapapeles" class="hidden bg-amber-50 border border-amber-200 p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
@@ -171,6 +171,17 @@
                 <h3 id="modalTitulo" class="text-base font-bold text-slate-900">Asignar Clase / Taller</h3>
                 <button onclick="cerrarModalClase()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
+
+            <!-- Botón de Acceso Rápido para Pegar dentro del Modal -->
+            <div id="contenedorPegarModal" class="hidden mb-4 bg-amber-50 border border-amber-200 p-2.5 rounded-xl flex items-center justify-between">
+                <div class="text-[11px] text-amber-900 font-medium">
+                    <i class="fa-solid fa-clipboard text-amber-600 mr-1"></i> Hay un bloque copiado listo.
+                </div>
+                <button type="button" onclick="pegarEnFormularioModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm transition">
+                    Pegar datos aquí
+                </button>
+            </div>
+
             <form id="formClase" onsubmit="guardarClase(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="claseId">
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium">
@@ -435,6 +446,9 @@
             info.innerText = `${claseOriginal.materia} — ${claseOriginal.docente} ${claseOriginal.grupo ? '('+claseOriginal.grupo+')' : ''}`;
             barra.classList.remove('hidden');
             barra.classList.add('flex');
+            
+            // Actualizar grilla para que aparezcan los botones de pegar instantáneamente
+            renderizarGrilla();
         }
 
         function limpiarPortapapeles() {
@@ -442,9 +456,10 @@
             const barra = document.getElementById('barraPortapapeles');
             barra.classList.remove('flex');
             barra.classList.add('hidden');
+            renderizarGrilla();
         }
 
-        function pegarBloque(dia, moduloId, event) {
+        function pegarBloqueDirecto(dia, moduloId, event) {
             event.stopPropagation();
             if (!bloqueCopiado) return;
 
@@ -466,6 +481,25 @@
             clases.push(nuevaClase);
             renderizarGrilla();
             guardarDatosRemotos();
+        }
+
+        function pegarEnFormularioModal() {
+            if (!bloqueCopiado) return;
+
+            document.getElementById('modalGrupo').value = bloqueCopiado.grupo;
+            document.getElementById('modalMateria').value = bloqueCopiado.materia;
+            document.getElementById('modalDocente').value = bloqueCopiado.docente;
+
+            if (bloqueCopiado.aula && bloqueCopiado.aula.startsWith("Laboratorio")) {
+                document.getElementById('tipoEspacio').value = "Laboratorio";
+                actualizarNumeroEspacio(bloqueCopiado.aula);
+            } else if (bloqueCopiado.aula && bloqueCopiado.aula.startsWith("Aula")) {
+                document.getElementById('tipoEspacio').value = "Aula";
+                actualizarNumeroEspacio(bloqueCopiado.aula);
+            } else {
+                document.getElementById('tipoEspacio').value = "";
+                actualizarNumeroEspacio();
+            }
         }
 
         function renderizarGrilla() {
@@ -520,7 +554,7 @@
                                             ${c.aula ? `<i class="fa-solid fa-door-open mr-1"></i>${c.aula}` : 'Aula común'}
                                         </span>
                                         <div class="flex gap-1">
-                                            <button onclick="copiarBloque(${c.id}, event)" title="Copiar bloque" class="text-amber-600 hover:text-amber-800 p-1 bg-amber-50 rounded"><i class="fa-solid fa-copy"></i></button>
+                                            <button onclick="copiarBloque(${c.id}, event)" title="Copiar bloque" class="text-amber-600 hover:text-amber-800 p-1 bg-amber-50 rounded hover:bg-amber-100"><i class="fa-solid fa-copy"></i></button>
                                             <button onclick="editarClase(${c.id})" title="Editar" class="text-indigo-600 hover:text-indigo-900 p-1"><i class="fa-solid fa-pen"></i></button>
                                             <button onclick="eliminarClase(${c.id})" title="Eliminar" class="text-rose-600 hover:text-rose-900 p-1"><i class="fa-solid fa-trash"></i></button>
                                         </div>
@@ -532,8 +566,8 @@
                         html += `<div class="flex flex-wrap gap-1 justify-center mt-1" onclick="event.stopPropagation()">`;
                         if (bloqueCopiado) {
                             html += `
-                                <button onclick="pegarBloque('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2 py-1 rounded-full shadow-sm hover:bg-amber-100 transition">
-                                    <i class="fa-solid fa-paste mr-1"></i> Pegar
+                                <button onclick="pegarBloqueDirecto('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2 py-1 rounded-full shadow-sm hover:bg-amber-100 transition">
+                                    <i class="fa-solid fa-paste mr-1"></i> Pegar aquí
                                 </button>
                             `;
                         }
@@ -550,7 +584,7 @@
                         `;
                         if (bloqueCopiado) {
                             html += `
-                                <button onclick="pegarBloque('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-sm hover:bg-amber-100 transition not-italic">
+                                <button onclick="pegarBloqueDirecto('${dia}', ${mod.id}, event)" class="text-[10px] text-amber-700 hover:text-amber-900 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-sm hover:bg-amber-100 transition not-italic">
                                     <i class="fa-solid fa-paste mr-1"></i> Pegar aquí
                                 </button>
                             `;
@@ -570,6 +604,16 @@
             document.getElementById('formClase').reset();
             document.getElementById('claseId').value = '';
             actualizarNumeroEspacio(); 
+
+            // Mostrar u ocultar el botón rápido de pegar en el modal según haya datos copiados
+            const contenedorPegar = document.getElementById('contenedorPegarModal');
+            if (bloqueCopiado) {
+                contenedorPegar.classList.remove('hidden');
+                contenedorPegar.classList.add('flex');
+            } else {
+                contenedorPegar.classList.remove('flex');
+                contenedorPegar.classList.add('hidden');
+            }
             
             const anio = document.getElementById('selectAnio').value;
             const divId = document.getElementById('selectDivision').value;
@@ -641,6 +685,10 @@
             document.getElementById('modalGrupo').value = c.grupo || '';
             document.getElementById('modalMateria').value = c.materia;
             document.getElementById('modalDocente').value = c.docente;
+
+            // Ocultar pegar en modal al editar
+            document.getElementById('contenedorPegarModal').classList.remove('flex');
+            document.getElementById('contenedorPegarModal').classList.add('hidden');
 
             if (c.aula && c.aula.startsWith("Laboratorio")) {
                 document.getElementById('tipoEspacio').value = "Laboratorio";
